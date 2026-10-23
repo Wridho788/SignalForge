@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+
+/*
+ * SignalForge design tokens (docs/design/DESIGN_SYSTEM.md). Text/background pairs are checked
+ * against WCAG AA by src/app/contrast.test.ts — change a color, run the tests.
+ * Spacing uses Tailwind's 4px scale.
+ */
+@theme {
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-line: #d9dde4;
+  --color-ink: #1b1f27;
+  --color-muted: #566070;
+  --color-primary: #4338ca;
+  --color-primary-strong: #3730a3;
+  --color-primary-soft: #eef0ff;
+  --color-success: #166534;
+  --color-success-soft: #e8f6ec;
+  --color-warning: #8a4b00;
+  --color-warning-soft: #fff4de;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-card border border-line bg-surface p-5;
+  }
+  .btn {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-control border px-4 py-2 text-sm font-semibold no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply border-primary bg-primary text-white hover:bg-primary-strong;
+  }
+  .btn-secondary {
+    @apply border-line bg-surface text-ink hover:bg-canvas;
+  }
+  .btn-danger {
+    @apply border-danger bg-danger text-white hover:brightness-90;
+  }
+  .field-label {
+    @apply mb-1 block text-sm font-semibold;
+  }
+  .field-hint {
+    @apply mt-1 text-sm text-muted;
+  }
+  .field-error {
+    @apply mt-1 text-sm font-medium text-danger;
+  }
+  .input {
+    @apply block min-h-10 w-full rounded-control border border-[#8a93a3] bg-surface px-3 py-2 text-base text-ink placeholder:text-muted;
+  }
+  .input[aria-invalid='true'] {
+    @apply border-danger;
+  }
+  .data-table {
+    @apply w-full border-collapse text-left text-sm;
+  }
+  .data-table th {
+    @apply whitespace-nowrap border-b border-line bg-canvas px-3 py-2 align-bottom font-semibold;
+  }
+  .data-table td {
+    @apply border-b border-line px-3 py-2 align-top;
+  }
+  .data-table .num {
+    @apply text-right tabular-nums;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold;
+  }
+}

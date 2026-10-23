@@ -1,0 +1,5 @@
+# Marks this folder as its own pnpm root so pnpm does not walk up to a parent
+# workspace (e.g. a pnpm-workspace.yaml/pnpm-lock.yaml in the user's home directory).
+packages: []
+allowBuilds:
+  unrs-resolver: false
