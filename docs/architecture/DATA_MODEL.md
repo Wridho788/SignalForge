@@ -121,6 +121,11 @@ Source of truth: `src/lib/db/migrations/`. Differences and decisions on top of t
 - **Input rules.** Counters: integers, no thousands separators. Durations/currency: decimal (comma or dot). Non-negative unless `allow_negative`. Magnitude ≤ 1e15.
 - **Snapshot validation.** Blocking: invalid/nonexistent local time, future time, capture earlier than `published_at`, unparsable values, no metric given. Warnings (need explicit confirmation): unknown `published_at`, duplicate capture time, counter/duration lower than the previous (or higher than the next) known snapshot — cumulative behavior is not assumed because platform definitions vary.
 
+### 5.1 Analytics and experiments (M4–M5, schema v4)
+
+- **Equivalent age** follows ADR 0006: closest known reading within target ± tolerance, ties to the earlier capture, explicit reason otherwise. Superseded snapshots are excluded from every analytic. Provenance (`metric_snapshots.source`) is carried to the result.
+- **Experiments** (`experiments`, `experiment_secondary_metrics`, `experiment_distributions`, `experiment_events`): `success_type` ∈ `min_value` (metric units; ratios as fractions) | `min_relative_gain` (fraction). `design` ∈ `concurrent` | `before_after` | `other`. `comparison_tolerance_hours` is copied from Settings at creation. Roles per link: `baseline` | `variant` | `supporting`. CHECK constraints tie `decision` to status (decision present exactly when completed/inconclusive; `inconclusive` decision ⇔ `inconclusive` status), require learning and end/start times, and forbid negative thresholds. `experiment_events` blocks UPDATE (append-only); deleting a draft/cancelled experiment cascades its links and log, never the linked content.
+
 ## 6. Example analytics output contract
 
 ```ts

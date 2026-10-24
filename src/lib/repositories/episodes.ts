@@ -73,6 +73,11 @@ export function findEpisodeIdByCode(db: DatabaseSync, code: string): string | un
   return get<{ id: string }>(db, 'SELECT id FROM episodes WHERE episode_code = ?', [code])?.id;
 }
 
+/** Case-insensitive exact title matches (ids), used to match imported rows without an episode code. */
+export function findEpisodeIdsByTitle(db: DatabaseSync, title: string): string[] {
+  return all<{ id: string }>(db, 'SELECT id FROM episodes WHERE lower(title) = lower(?) ORDER BY created_at', [title]).map((r) => r.id);
+}
+
 export function deleteEpisodeRow(db: DatabaseSync, id: string): boolean {
   return run(db, 'DELETE FROM episodes WHERE id = ?', [id]) > 0;
 }

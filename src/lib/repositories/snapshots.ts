@@ -32,6 +32,8 @@ export interface SnapshotInsertFields {
   source: SnapshotRow['source'];
   note: string | null;
   supersedesSnapshotId: string | null;
+  /** Set for snapshots created by a CSV import (provenance). */
+  importJobId?: string | null;
 }
 
 const SNAPSHOT_COLUMNS = `
@@ -44,8 +46,8 @@ export function insertSnapshot(db: DatabaseSync, f: SnapshotInsertFields): strin
   run(
     db,
     `INSERT INTO metric_snapshots (id, distribution_id, captured_at, post_age_seconds, source, note,
-       supersedes_snapshot_id, created_at) VALUES (?,?,?,?,?,?,?,?)`,
-    [id, f.distributionId, f.capturedAt, f.postAgeSeconds, f.source, f.note, f.supersedesSnapshotId, nowIso()],
+       supersedes_snapshot_id, import_job_id, created_at) VALUES (?,?,?,?,?,?,?,?,?)`,
+    [id, f.distributionId, f.capturedAt, f.postAgeSeconds, f.source, f.note, f.supersedesSnapshotId, f.importJobId ?? null, nowIso()],
   );
   return id;
 }
@@ -156,6 +158,18 @@ export function hasSnapshotAt(
       [distributionId, capturedAt, excludeSnapshotId, excludeSnapshotId],
     )!.n > 0
   );
+}
+
+/** The current (not superseded) snapshot of a distribution captured at exactly this instant, if any. */
+export function findCurrentSnapshotAt(db: DatabaseSync, distributionId: string, capturedAt: string): string | undefined {
+  return get<{ id: string }>(
+    db,
+    `SELECT s.id AS id FROM metric_snapshots s
+     WHERE s.distribution_id = ? AND s.captured_at = ?
+       AND NOT EXISTS (SELECT 1 FROM metric_snapshots r WHERE r.supersedes_snapshot_id = s.id)
+     ORDER BY s.created_at DESC LIMIT 1`,
+    [distributionId, capturedAt],
+  )?.id;
 }
 
 export function countSnapshotsForEpisode(db: DatabaseSync, episodeId: string): number {

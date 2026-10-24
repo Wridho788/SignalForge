@@ -4,6 +4,9 @@ import { EmptyState, Alert, Badge } from '@/components/ui/feedback';
 import { PageHeader } from '@/components/ui/layout-bits';
 import { getDb } from '@/lib/db/connection';
 import { APP_NAME, ANALYSIS_CYCLE } from '@/lib/identity';
+import { DECISION_LABELS } from '@/lib/experiments/model';
+import { KpiRow } from '@/features/analytics/Kpis';
+import { getPlatformKpis } from '@/lib/services/analytics';
 import { getOverviewStats } from '@/lib/services/overview';
 import { getAppSettings } from '@/lib/services/settings';
 import { formatDateTime } from '@/lib/time';
@@ -13,9 +16,9 @@ export const metadata = { title: 'Ringkasan' };
 // Honest status of each stage of the analysis cycle; later milestones flip these.
 const CYCLE_STATUS: Record<(typeof ANALYSIS_CYCLE)[number], { available: boolean; note: string }> = {
   Measure: { available: true, note: 'Catat episode, distribusi, dan snapshot metrik manual.' },
-  Understand: { available: false, note: 'Analitik usia setara — segera hadir (M4).' },
-  Experiment: { available: false, note: 'Hipotesis dan eksperimen — segera hadir (M5).' },
-  Improve: { available: false, note: 'Keputusan dan pembelajaran — segera hadir (M5).' },
+  Understand: { available: true, note: 'Bandingkan post pada usia setara di Analitik.' },
+  Experiment: { available: true, note: 'Rancang hipotesis dan kriteria sukses di Eksperimen.' },
+  Improve: { available: true, note: 'Catat keputusan dan pembelajaran di log eksperimen.' },
 };
 
 export default async function OverviewPage() {
@@ -23,6 +26,7 @@ export default async function OverviewPage() {
   const db = getDb();
   const stats = getOverviewStats(db);
   const { timezone } = getAppSettings(db);
+  const kpi = getPlatformKpis(db);
 
   return (
     <>
@@ -65,6 +69,8 @@ export default async function OverviewPage() {
         </EmptyState>
       ) : (
         <>
+          {kpi.metric ? <KpiRow metric={kpi.metric} window={kpi.window} kpis={kpi.kpis} timezone={timezone} /> : null}
+
           <section aria-labelledby="counts-heading" className="mb-8">
             <h2 id="counts-heading" className="mb-3 text-lg font-semibold">
               Data yang tercatat
@@ -81,7 +87,7 @@ export default async function OverviewPage() {
                 </div>
               ))}
             </dl>
-            <p className="field-hint">Jumlah catatan, bukan angka performa. Analitik performa hadir di M4.</p>
+            <p className="field-hint">Jumlah catatan, bukan angka performa. Performa ada di KPI di atas dan di Analitik.</p>
           </section>
 
           {stats.distributionsWithoutSnapshots > 0 || stats.distributionsWithoutPublishedAt > 0 ? (
@@ -102,6 +108,56 @@ export default async function OverviewPage() {
                   ) : null}
                 </ul>
               </Alert>
+            </section>
+          ) : null}
+
+          {stats.runningExperiments.length > 0 || stats.recentDecisions.length > 0 ? (
+            <section aria-labelledby="exp-heading" className="mb-8">
+              <h2 id="exp-heading" className="mb-3 text-lg font-semibold">
+                Eksperimen dan keputusan
+              </h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="card">
+                  <h3 className="mb-2 font-semibold">Sedang berjalan</h3>
+                  {stats.runningExperiments.length === 0 ? (
+                    <p className="text-sm text-muted">Tidak ada eksperimen berjalan.</p>
+                  ) : (
+                    <ul className="space-y-2 text-sm">
+                      {stats.runningExperiments.map((x) => (
+                        <li key={x.id}>
+                          <Link href={`/experiments/${x.id}`} className="font-semibold text-primary underline underline-offset-2">
+                            {x.title}
+                          </Link>
+                          <span className="block text-muted">
+                            {x.primaryMetricLabel} @ {x.windowHours} j · {x.baselineCount} baseline, {x.variantCount} varian
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div className="card">
+                  <h3 className="mb-2 font-semibold">Keputusan terbaru</h3>
+                  {stats.recentDecisions.length === 0 ? (
+                    <p className="text-sm text-muted">Belum ada eksperimen yang ditutup.</p>
+                  ) : (
+                    <ul className="space-y-2 text-sm">
+                      {stats.recentDecisions.map((x) => (
+                        <li key={x.id}>
+                          <Link href={`/experiments/${x.id}`} className="font-semibold text-primary underline underline-offset-2">
+                            {x.title}
+                          </Link>
+                          <span className="block text-muted">
+                            {x.decision ? DECISION_LABELS[x.decision] : '—'}
+                            {x.endedAt ? ` · ${formatDateTime(x.endedAt, timezone)}` : ''}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+              <p className="field-hint">Hasil eksperimen bersifat indikasi dari data yang diamati, bukan bukti sebab-akibat.</p>
             </section>
           ) : null}
 
