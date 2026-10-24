@@ -8,7 +8,9 @@ Statuses at document creation: all milestones **PLANNED**. Update only after che
 | M1 | DONE (2026-10-23) — with the limitations listed in the log |
 | M2 | DONE (2026-10-23) — with the limitations listed in the log |
 | M3 | DONE (2026-10-23) — with the limitations listed in the log |
-| M4–M8 | PLANNED |
+| M4 | DONE (2026-10-24) — with the limitations listed in the log |
+| M5 | DONE (2026-10-24) — with the limitations listed in the log |
+| M6–M8 | PLANNED |
 
 "DONE" means the deliverables exist and the acceptance criteria were checked by the tests/commands recorded in `IMPLEMENTATION_LOG.md`; it does not mean free of known limitations.
 

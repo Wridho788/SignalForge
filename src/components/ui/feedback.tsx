@@ -89,6 +89,18 @@ const NOTICES: Record<string, string> = {
   'settings-saved': 'Pengaturan disimpan.',
   'metric-created': 'Definisi metrik dibuat.',
   'metric-updated': 'Definisi metrik diperbarui.',
+  'import-committed': 'Impor selesai. Ringkasannya ada di bawah.',
+  'import-cancelled': 'Impor dibatalkan; tidak ada data yang diubah.',
+  'backup-created': 'Cadangan dibuat.',
+  'restore-done': 'Data dipulihkan. Cadangan pra-pemulihan tersimpan di daftar cadangan.',
+  'experiment-created': 'Eksperimen dibuat sebagai Draf. Tautkan baseline dan varian sebelum memulai.',
+  'experiment-updated': 'Definisi eksperimen diperbarui.',
+  'experiment-status': 'Status eksperimen diperbarui.',
+  'experiment-linked': 'Distribusi ditautkan.',
+  'experiment-unlinked': 'Tautan dilepas.',
+  'experiment-outcome': 'Hasil dan pembelajaran dicatat. Eksperimen ditutup.',
+  'experiment-note': 'Catatan ditambahkan ke log.',
+  'experiment-deleted': 'Eksperimen dihapus.',
 };
 
 export function Notice({ code }: { code?: string | string[] }) {

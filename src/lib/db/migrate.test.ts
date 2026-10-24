@@ -32,6 +32,11 @@ describe('migrations', () => {
         'metric_definitions',
         'metric_snapshots',
         'metric_values',
+        'experiments',
+        'experiment_distributions',
+        'experiment_secondary_metrics',
+        'experiment_events',
+        'import_jobs',
         'schema_migrations',
       ]),
     );
@@ -47,13 +52,13 @@ describe('migrations', () => {
   });
 
   it('upgrades from the previous schema version', () => {
-    const db = openDatabase(':memory:', { upTo: 2 });
-    expect(currentSchemaVersion(db)).toBe(2);
+    const db = openDatabase(':memory:', { upTo: 4 });
+    expect(currentSchemaVersion(db)).toBe(4);
     db.prepare(
       "INSERT INTO episodes (id, title, created_at, updated_at) VALUES ('e1','Existing','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z')",
     ).run();
     const result = migrate(db, MIGRATIONS);
-    expect(result).toMatchObject({ from: 2, to: 3, applied: [3] });
+    expect(result).toMatchObject({ from: 4, to: 5, applied: [5] });
     expect((db.prepare('SELECT title FROM episodes').get() as { title: string }).title).toBe('Existing');
   });
 

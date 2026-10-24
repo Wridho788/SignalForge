@@ -2,6 +2,8 @@ import type { DatabaseSync } from 'node:sqlite';
 import { openDatabase } from '@/lib/db/open';
 import { createDistribution } from '@/lib/services/distributions';
 import { createEpisode } from '@/lib/services/episodes';
+import { recordSnapshot } from '@/lib/services/snapshots';
+import type { PlatformId } from '@/lib/domain/types';
 import type { DistributionInput } from '@/lib/validation/distribution';
 import type { EpisodeInput } from '@/lib/validation/episode';
 
@@ -49,3 +51,50 @@ export function seedDistribution(
 }
 
 export const NOW = new Date('2026-10-23T12:00:00Z');
+
+/** Episode + one distribution (published at `publishedLocal` in TZ, or unknown when null). */
+export function addDist(
+  db: DatabaseSync,
+  title: string,
+  platform: PlatformId,
+  publishedLocal: string | null,
+  extra: { tags?: string[]; variant?: string } = {},
+): { episodeId: string; distributionId: string } {
+  const episodeId = createEpisode(db, episodeInput({ title, tags: extra.tags ?? [] }));
+  const distributionId = createDistribution(
+    db,
+    episodeId,
+    distributionInput({
+      platformId: platform,
+      publishedAtLocal: publishedLocal,
+      status: publishedLocal ? 'published' : 'unknown',
+      variantLabel: extra.variant ?? null,
+    }),
+    TZ,
+    NOW,
+  );
+  return { episodeId, distributionId };
+}
+
+/** Records a snapshot with the given raw metric values (warnings auto-confirmed). Returns the snapshot id. */
+export function snap(
+  db: DatabaseSync,
+  distributionId: string,
+  capturedLocal: string,
+  values: Record<string, string>,
+  supersedes: string | null = null,
+): string {
+  const r = recordSnapshot(
+    db,
+    distributionId,
+    {
+      capturedAtLocal: capturedLocal,
+      note: null,
+      supersedesSnapshotId: supersedes,
+      entries: Object.entries(values).map(([id, raw]) => ({ metricDefinitionId: id, mode: 'value' as const, raw })),
+    },
+    { timezone: TZ, confirmWarnings: true, now: NOW },
+  );
+  if (r.status !== 'saved') throw new Error('snapshot not saved');
+  return r.snapshotId;
+}

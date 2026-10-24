@@ -92,10 +92,30 @@
   .data-table td {
     @apply border-b border-line px-3 py-2 align-top;
   }
+  /* Row headers sit at the top like the other cells in the row. */
+  .data-table tbody th {
+    @apply align-top;
+  }
   .data-table .num {
     @apply text-right tabular-nums;
   }
   .badge {
     @apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold;
+  }
+  /* Chart marks: generous transparent hit area; a visible ring appears on keyboard focus. */
+  .chart-point {
+    outline: none;
+    cursor: default;
+  }
+  .chart-ring {
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: 3;
+  }
+  .chart-point:hover .chart-ring {
+    fill: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  }
+  .chart-point:focus-visible .chart-ring {
+    stroke: var(--color-primary);
   }
 }

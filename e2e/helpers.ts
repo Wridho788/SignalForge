@@ -24,6 +24,47 @@ export async function addDistribution(
   await page.getByRole('button', { name: 'Tambah distribusi' }).click();
 }
 
+export interface SeedSnapshot {
+  /** Local `YYYY-MM-DDTHH:mm` in the app time zone (Asia/Jakarta in E2E). */
+  at: string;
+  values?: Record<string, string>;
+  modes?: Record<string, string>;
+  /** Confirm the warning step (e.g. unknown publish time). */
+  confirm?: boolean;
+}
+
+/** Creates an episode + one distribution + snapshots entirely through the UI. */
+export async function seedPost(
+  page: Page,
+  opts: {
+    title: string;
+    platform: 'facebook' | 'youtube' | 'tiktok';
+    publishedAt?: string;
+    tags?: string;
+    snapshots: SeedSnapshot[];
+  },
+): Promise<{ episodeId: string; distUrl: string }> {
+  const episodeId = await createEpisode(page, opts.title, { tags: opts.tags });
+  await addDistribution(page, episodeId, {
+    platform: opts.platform,
+    publishedAt: opts.publishedAt,
+    status: opts.publishedAt ? undefined : 'unknown',
+  });
+  await page.waitForURL(/\/distributions\/[0-9a-f-]{36}(\?|$)/);
+  const distUrl = page.url().split('?')[0]!;
+  for (const s of opts.snapshots) {
+    await page.goto(`${distUrl}/snapshots/new`);
+    await fillSnapshot(page, { capturedAt: s.at, values: s.values, modes: s.modes });
+    await page.getByRole('button', { name: 'Simpan snapshot' }).click();
+    if (s.confirm) {
+      await page.getByLabel('Saya sudah meninjau peringatan').check();
+      await page.getByRole('button', { name: 'Simpan dengan peringatan' }).click();
+    }
+    await page.waitForURL(/notice=snapshot-created/);
+  }
+  return { episodeId, distUrl };
+}
+
 /** Fills metric rows by metric definition id, then returns without submitting. */
 export async function fillSnapshot(
   page: Page,

@@ -49,6 +49,9 @@ export default async function DistributionPage({
             <Link href={`/episodes/${id}/distributions/${distId}/snapshots/new`} className="btn btn-primary">
               Tambah snapshot
             </Link>
+            <Link href={`/episodes/${id}/performance`} className="btn btn-secondary">
+              Performa
+            </Link>
             <Link href={`/episodes/${id}/distributions/${distId}/edit`} className="btn btn-secondary">
               Ubah
             </Link>

@@ -60,6 +60,9 @@ export default async function EpisodeDetailPage({
             <Link href={`/episodes/${id}/distributions/new`} className="btn btn-primary">
               Tambah distribusi
             </Link>
+            <Link href={`/episodes/${id}/performance`} className="btn btn-secondary">
+              Performa
+            </Link>
             <Link href={`/episodes/${id}/edit`} className="btn btn-secondary">
               Ubah
             </Link>

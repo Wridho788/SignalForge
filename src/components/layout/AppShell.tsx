@@ -6,6 +6,9 @@ import { NavLinks, type NavItem } from './NavLinks';
 const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Ringkasan' },
   { href: '/episodes', label: 'Episode' },
+  { href: '/analytics', label: 'Analitik' },
+  { href: '/experiments', label: 'Eksperimen' },
+  { href: '/imports', label: 'Impor & Ekspor' },
   { href: '/settings', label: 'Pengaturan' },
 ];
 
