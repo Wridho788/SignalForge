@@ -73,6 +73,15 @@ export class AiError extends Error {
   }
 }
 
+/**
+ * Provider instances are shared through globalThis across Next.js route bundles, each of which has its own copy of this
+ * module, so `instanceof AiError` can be false for an error that really is one. Check the shape instead.
+ */
+export function isAiError(error: unknown): error is AiError {
+  const e = error as Partial<AiError> | null;
+  return typeof e === 'object' && e !== null && e.name === 'AiError' && typeof e.code === 'string' && e.code in AI_ERROR_INFO;
+}
+
 export function newOperationId(): string {
   return crypto.randomUUID().slice(0, 8);
 }

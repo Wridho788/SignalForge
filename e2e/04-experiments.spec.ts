@@ -180,7 +180,7 @@ test('experiments list filters by status and the overview shows decisions', asyn
   const section = page.locator('#exp-heading').locator('xpath=ancestor::section');
   await expect(section.getByText('Tidak ada eksperimen berjalan.')).toBeVisible();
   await expect(section).toContainText('Iterasi');
-  await expect(page.getByText('Tersedia', { exact: true })).toHaveCount(4); // all four cycle stages
+  await expect(page.getByRole('link', { name: /^04\s*Improve/ })).toHaveAttribute('href', '/experiments');
 });
 
 test('a draft can be deleted; a finished experiment cannot', async ({ page }) => {

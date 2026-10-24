@@ -11,6 +11,9 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         <Link href="/settings/metrics" className="rounded-control px-3 py-2 text-ink hover:bg-canvas">
           Metrik
         </Link>
+        <Link href="/settings/ai-connections" className="rounded-control px-3 py-2 text-ink hover:bg-canvas">
+          Koneksi AI
+        </Link>
       </nav>
       {children}
     </>

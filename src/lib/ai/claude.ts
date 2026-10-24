@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { TEST_PROMPT } from './analysis';
-import { AI_ERROR_INFO, AiError, classifyFailure, newOperationId, type AiErrorCode } from './errors';
+import { AI_ERROR_INFO, AiError, isAiError, classifyFailure, newOperationId, type AiErrorCode } from './errors';
 import { buildChildEnv } from './env';
 import { resolveProviderCommand, type ResolvedCommand } from './executable';
 import { withProviderGuard } from './guard';
@@ -89,7 +89,7 @@ export class ClaudeProvider implements LocalAiProvider {
         remediation: parsed.apiBilling ? 'Jika ingin memakai langganan: jalankan `claude auth login --claudeai` di terminal.' : undefined,
       };
     } catch (error) {
-      if (error instanceof AiError) {
+      if (isAiError(error)) {
         const status = error.code === 'CLI_NOT_FOUND' ? 'not_installed' : error.code === 'RATE_LIMITED' ? 'rate_limited' : 'error';
         return { ...base, status, displayMessage: error.message, remediation: error.remediation, errorCode: error.code };
       }

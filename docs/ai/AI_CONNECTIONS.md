@@ -13,7 +13,7 @@ For a product UI that needs login state, conversation threads, approvals, and st
 
 Official references:
 - App-server overview/protocol: https://learn.chatgpt.com/docs/app-server
-- Sign in with ChatGPT / app-server integration: https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server
+- Sign in with ChatGPT / app-server integration: https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server — **reference only.** That path is about sharing tokens with a third-party app; SignalForge does not use it. It never receives a token (see §10).
 - Authentication and local credential handling: https://learn.chatgpt.com/docs/auth
 
 Implementation requirements:
@@ -29,7 +29,7 @@ Implementation requirements:
 For a local personal dashboard, evaluate the official Claude Code CLI and/or Claude Agent SDK using supported local authentication. Do not assume every Claude plan or third-party use is permitted indefinitely; verify current Anthropic docs and plan limits before shipping.
 
 Official references:
-- Claude Code setup/authentication: https://docs.anthropic.com/en/docs/claude-code/getting-started
+- Claude Code setup/authentication: https://code.claude.com/docs/en/getting-started (canonical; the older `docs.anthropic.com/.../claude-code/getting-started` address redirects here)
 - Claude plan and Agent SDK usage: https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan
 - Claude Code with Pro/Max: https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan
 
@@ -145,3 +145,23 @@ Output must be treated as untrusted text. Render Markdown safely with raw HTML d
 - Set minimal environment variables; never dump process.env.
 - Ensure process termination on timeout, app shutdown, cancellation and client disconnect.
 - Before any deployment or multi-user use, reassess auth permissions and provider terms.
+
+## 9. As built (M7)
+
+Decision record: ADR 0008. Code: `src/lib/ai/` (adapters, process/JSON-RPC plumbing, payload and output validation), `src/lib/services/ai.ts`, `src/app/api/ai/{preview,analyze}`, `src/features/ai/`, pages `/settings/ai-connections` and `/analytics/ai`.
+
+- **Status model.** Three separate facts are never merged: *installed*, *signed in*, and *a request actually succeeded* (the last result of “Uji koneksi” is shown with its time). “Terhubung” alone does not claim inference works. Opening a page never spawns a CLI: pages read an in-memory cache, and the card runs a **local** status check (version / account state) once when there is no cache. Only “Uji koneksi” and “Analisis” send a real request, after explicit consent.
+- **Sign-in.** Codex: the “Masuk” button starts the official device-code flow; the card shows the verification page (https, `openai.com`/`chatgpt.com` only) and the one-time code, polls the state, and re-checks status on completion. Claude: the card shows the official terminal command (`claude auth login --claudeai`) because the CLI's own login is interactive; SignalForge does not drive it. There is no token field anywhere (an E2E test scans the AI pages for credential-like inputs).
+- **Billing.** If a CLI reports API-key/Console billing, the card says so; SignalForge never forwards `ANTHROPIC_API_KEY`/`OPENAI_API_KEY` to the child process, so it cannot silently fall back to paid API usage.
+- **Setup panel.** OS selector (Windows, macOS, Linux/WSL), numbered steps with copyable commands, official links, billing explanation, troubleshooting. Commands are fixed text from the official docs; they are displayed for the user to run and are never executed by SignalForge. Commands and links can change between releases: verify them on the linked pages.
+- **Consent.** `/analytics/ai` carries the current analytics filters. “Tinjau data yang akan dikirim” shows date range, counts (episodes, distributions, snapshots), fields included and excluded, the provider that will receive the data, and the exact JSON (collapsible). Titles are opt-in. Continue / Cancel; a running analysis can be cancelled, which stops the provider process.
+- **Result.** Provider, model (if reported), generation time, data subset, the six sections with Indonesian labels, an “advisory, not fact” banner, a warning for citations that are not in the sent data, an alias legend resolved locally, and copy/retry/close. Results are not stored.
+- **Limits.** ≤ 60 posts and ≤ 60,000 payload characters; request bodies to the API ≤ 4 KB; output ≤ 12,000 characters; 120 s (Claude) / 150 s (Codex) analysis timeout; 1 in-flight call and 12 calls / 10 minutes per provider.
+- **Test mode.** `SIGNALFORGE_AI_MODE=fake` (used by the Playwright server only) replaces both providers with an in-process fake driven by `<data dir>/fake-ai.json`; a “Mode uji” banner is shown. `SIGNALFORGE_CLAUDE_PATH` / `SIGNALFORGE_CODEX_PATH` can point to an executable that is not on PATH.
+
+## 10. Recheck status and what is NOT verified
+
+- Rechecked on 2026-10-24: Claude install commands (PowerShell `irm https://claude.ai/install.ps1 | iex`; macOS/Linux/WSL `curl -fsSL https://claude.ai/install.sh | bash`) against `https://code.claude.com/docs/en/getting-started`; `claude auth login --claudeai` (default is the subscription; `--console` is API billing) and `claude auth status --json` against the installed CLI's own `--help`; Codex `codex login`, `codex login --device-auth` (beta, must be enabled in ChatGPT security settings) and the standalone installer `curl -fsSL https://chatgpt.com/codex/install.sh | sh` against `https://learn.chatgpt.com/docs/auth` and `/docs/codex/cli`; the npm package name `@openai/codex` against a locally installed copy. **Not confirmed from the docs pages:** Windows install steps for Codex (npm is used because the package exists), and the Homebrew cask for Codex (removed from the guide). Claude's own page documents browser login via `claude`; the explicit `claude auth login` subcommand comes from the CLI help. Re-verify before release; these change.
+- **NOT RUN:** no real Claude or Codex account was logged in and no real inference was executed in this repository's test runs. The adapters are tested against fake CLIs (`src/test/fake-cli/`) that mimic the documented output shapes: `claude -p --output-format json` result object, `claude auth status --json`, and the Codex app-server JSON-RPC methods (`initialize`, `account/read`, `account/login/start`, thread/turn notifications). The real shapes and the real login flows are therefore unverified here.
+- Codex tool restriction is enforced by the client (every server request refused, any tool item aborts the turn) in addition to the read-only/no-network/never-approve thread settings; whether the installed Codex can also disable tool features through configuration was not verified.
+- Whether a given subscription plan may be used by a third-party local tool is a provider policy question; SignalForge links the provider's own statements and does not assume permission. Reassess before any hosted or multi-user use.

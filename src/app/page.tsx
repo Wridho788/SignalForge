@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { connection } from 'next/server';
-import { EmptyState, Alert, Badge } from '@/components/ui/feedback';
+import { LuArrowRight } from 'react-icons/lu';
+import { EmptyState, Alert } from '@/components/ui/feedback';
 import { PageHeader } from '@/components/ui/layout-bits';
 import { getDb } from '@/lib/db/connection';
 import { APP_NAME, ANALYSIS_CYCLE } from '@/lib/identity';
@@ -13,12 +14,12 @@ import { formatDateTime } from '@/lib/time';
 
 export const metadata = { title: 'Ringkasan' };
 
-// Honest status of each stage of the analysis cycle; later milestones flip these.
-const CYCLE_STATUS: Record<(typeof ANALYSIS_CYCLE)[number], { available: boolean; note: string }> = {
-  Measure: { available: true, note: 'Catat episode, distribusi, dan snapshot metrik manual.' },
-  Understand: { available: true, note: 'Bandingkan post pada usia setara di Analitik.' },
-  Experiment: { available: true, note: 'Rancang hipotesis dan kriteria sukses di Eksperimen.' },
-  Improve: { available: true, note: 'Catat keputusan dan pembelajaran di log eksperimen.' },
+// Each stage of the cycle opens the place where that stage happens.
+const CYCLE: Record<(typeof ANALYSIS_CYCLE)[number], { href: string; note: string; action: string }> = {
+  Measure: { href: '/episodes', note: 'Catat episode, distribusi, dan snapshot metrik manual.', action: 'Buka episode' },
+  Understand: { href: '/analytics', note: 'Bandingkan post pada usia setara di Analitik.', action: 'Buka analitik' },
+  Experiment: { href: '/experiments', note: 'Rancang hipotesis dan kriteria sukses di Eksperimen.', action: 'Buka eksperimen' },
+  Improve: { href: '/experiments', note: 'Catat keputusan dan pembelajaran di log eksperimen.', action: 'Lihat keputusan' },
 };
 
 export default async function OverviewPage() {
@@ -46,17 +47,19 @@ export default async function OverviewPage() {
         </h2>
         <ol className="grid gap-3 md:grid-cols-4">
           {ANALYSIS_CYCLE.map((stage, i) => (
-            <li key={stage} className="card p-4">
-              <p className="text-sm text-muted">
-                {String(i + 1).padStart(2, '0')}
-              </p>
-              <p className="font-semibold">{stage}</p>
-              <p className="mt-1 text-sm text-muted">{CYCLE_STATUS[stage].note}</p>
-              <p className="mt-2">
-                <Badge tone={CYCLE_STATUS[stage].available ? 'success' : 'neutral'}>
-                  {CYCLE_STATUS[stage].available ? 'Tersedia' : 'Belum tersedia'}
-                </Badge>
-              </p>
+            <li key={stage}>
+              <Link
+                href={CYCLE[stage].href}
+                className="card group flex h-full flex-col p-4 no-underline transition-[border-color,box-shadow] hover:border-primary hover:shadow-sm"
+              >
+                <span className="block text-sm text-muted">{String(i + 1).padStart(2, '0')}</span>
+                <span className="block font-semibold">{stage}</span>
+                <span className="mt-1 block text-sm text-muted">{CYCLE[stage].note}</span>
+                <span className="mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-primary">
+                  {CYCLE[stage].action}
+                  <LuArrowRight aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </Link>
             </li>
           ))}
         </ol>

@@ -1,15 +1,14 @@
 import type { ReactNode } from 'react';
-import { APP_NAME, APP_TAGLINE } from '@/lib/identity';
+import { Logo } from '@/components/brand/Logo';
 import { NavLinks, type NavItem } from './NavLinks';
 
-// Only pages that exist are linked; later milestones add Analytics, Experiments, Imports & Exports.
 const NAV_ITEMS: NavItem[] = [
-  { href: '/', label: 'Ringkasan' },
-  { href: '/episodes', label: 'Episode' },
-  { href: '/analytics', label: 'Analitik' },
-  { href: '/experiments', label: 'Eksperimen' },
-  { href: '/imports', label: 'Impor & Ekspor' },
-  { href: '/settings', label: 'Pengaturan' },
+  { href: '/', label: 'Ringkasan', icon: 'overview' },
+  { href: '/episodes', label: 'Episode', icon: 'episodes' },
+  { href: '/analytics', label: 'Analitik', icon: 'analytics' },
+  { href: '/experiments', label: 'Eksperimen', icon: 'experiments' },
+  { href: '/imports', label: 'Impor & Ekspor', icon: 'data' },
+  { href: '/settings', label: 'Pengaturan', icon: 'settings' },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -21,10 +20,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         Lewati ke konten utama
       </a>
-      <aside className="border-b border-line bg-surface p-4 md:border-b-0 md:border-r">
+      <aside className="border-b border-line bg-surface p-4 md:sticky md:top-0 md:h-screen md:overflow-y-auto md:border-b-0 md:border-r">
         <div className="mb-3 md:mb-6">
-          <p className="text-lg font-bold leading-tight">{APP_NAME}</p>
-          <p className="text-sm text-muted">{APP_TAGLINE}</p>
+          <Logo />
         </div>
         <nav aria-label="Navigasi utama">
           <NavLinks items={NAV_ITEMS} />

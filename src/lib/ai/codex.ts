@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { APP_VERSION } from '../identity';
 import { TEST_PROMPT } from './analysis';
-import { AI_ERROR_INFO, AiError, classifyFailure, newOperationId, type AiErrorCode } from './errors';
+import { AI_ERROR_INFO, AiError, isAiError, classifyFailure, newOperationId, type AiErrorCode } from './errors';
 import { buildChildEnv } from './env';
 import { resolveProviderCommand, type ResolvedCommand } from './executable';
 import { withProviderGuard } from './guard';
@@ -119,7 +119,7 @@ export class CodexProvider implements LocalAiProvider {
     try {
       cmd = this.command();
     } catch (error) {
-      const code = (error as AiError).code;
+      const code = isAiError(error) ? error.code : 'CLI_NOT_FOUND';
       return { ...base, status: 'not_installed', displayMessage: AI_ERROR_INFO[code].message, remediation: AI_ERROR_INFO[code].remediation, errorCode: code };
     }
     const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'sf-codex-'));
@@ -158,7 +158,7 @@ export class CodexProvider implements LocalAiProvider {
         await session.close();
       }
     } catch (error) {
-      if (error instanceof AiError) {
+      if (isAiError(error)) {
         const status = error.code === 'CLI_NOT_FOUND' ? 'not_installed' : error.code === 'RATE_LIMITED' ? 'rate_limited' : 'error';
         return { ...base, status, displayMessage: error.message, remediation: error.remediation, errorCode: error.code };
       }
@@ -345,7 +345,7 @@ export class CodexProvider implements LocalAiProvider {
         if (!text || text.length > request.maxOutputChars) throw new AiError('INVALID_RESPONSE', operationId);
         return { provider: 'codex' as const, text, model: typeof thread?.model === 'string' ? thread.model.slice(0, 80) : null, durationMs: Date.now() - started };
       } catch (error) {
-        if (error instanceof AiError) {
+        if (isAiError(error)) {
           if (error.code === 'PROVIDER_ERROR' && (error as unknown as { rpcMessage?: string }).rpcMessage !== undefined) {
             throw new AiError(classifyFailure(rpcFailureText(error)), operationId);
           }
