@@ -52,7 +52,7 @@ pnpm test:e2e   # first run: pnpm exec playwright install chromium
 pnpm build
 ```
 
-`pnpm test:e2e` runs `pnpm build` and then serves the production build on `127.0.0.1:3100` with a fresh database in `.data/e2e` (see `scripts/e2e-server.mjs`). It writes to `.next`, so stop `pnpm dev` first. Spec files are numbered because they share one database and run in order (`01-smoke`, `02-flow`, `03-security-a11y`).
+`pnpm test:e2e` runs `pnpm build` and then serves the production build on `127.0.0.1:3100` with a fresh database in `.data/e2e` (see `scripts/e2e-server.mjs`). It writes to `.next`, so stop `pnpm dev` first. Spec files are numbered because they share one database and run in order (`01-smoke`, `02-flow`, `03-analytics`, `04-experiments`, `05-data`, `06-security-a11y`, `07-ai`). The server runs with `SIGNALFORGE_AI_MODE=fake`, so AI specs use in-process fake providers (scenario file in the data directory); no real CLI, account or network is involved. Mock data (CSV rows, seeded posts) is built from the documented columns and metric keys (`e2e/fixtures.ts`, `e2e/helpers.ts`).
 
 Do not add scripts blindly; inspect `package.json` first and document the actual project commands. If a command is absent, record NOT CONFIGURED and add it in the setup milestone.
 
@@ -62,6 +62,8 @@ Do not add scripts blindly; inspect `package.json` first and document the actual
 - No real tokens or personal credentials in fixtures.
 
 ## Release gates
+
+Status at 0.1.0 (2026-10-24): **A** passed. **B** passed (null/zero end to end, CSV round-trip, analytics tests). **C** passed with the NOT RUN item that no real provider session was executed (fake CLIs and a fake provider cover success, auth-required, timeout, rate limit, malformed response, process exit; no secrets in logs/UI). **D** passed except screen-reader/axe audits and non-Chromium browsers (NOT RUN). Commands and counts: `IMPLEMENTATION_LOG.md`.
 
 ### Gate A — Foundation
 - Lint, typecheck, unit tests pass.

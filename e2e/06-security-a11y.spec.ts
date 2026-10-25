@@ -105,7 +105,7 @@ test.describe('semantics', () => {
   });
 
   test('there is no token/secret/password input anywhere in the app UI', async ({ page }) => {
-    for (const url of ['/', '/episodes', '/episodes/new', '/settings', '/settings/metrics', `${distributionUrl}/snapshots/new`]) {
+    for (const url of ['/', '/episodes', '/episodes/new', '/settings', '/settings/metrics', '/settings/ai-connections', '/analytics/ai', `${distributionUrl}/snapshots/new`]) {
       await page.goto(url);
       const bad = await page.evaluate(
         () =>

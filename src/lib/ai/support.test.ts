@@ -16,7 +16,7 @@ import {
   validateAnalysisText,
 } from './analysis';
 import { buildChildEnv } from './env';
-import { classifyFailure } from './errors';
+import { AiError, classifyFailure, isAiError } from './errors';
 import { resolveProviderCommand } from './executable';
 import { MAX_CALLS_PER_WINDOW, WINDOW_MS, resetGuardForTests, withProviderGuard } from './guard';
 import { mapCodexError } from './codex';
@@ -114,6 +114,21 @@ describe('guard', () => {
     await expect(withProviderGuard('codex', async () => 0, clock)).rejects.toMatchObject({ code: 'BUSY' });
     t += WINDOW_MS + 1;
     await expect(withProviderGuard('codex', async () => 0, clock)).resolves.toBe(0);
+  });
+});
+
+describe('isAiError', () => {
+  it('recognises an AiError by shape, so a copy from another bundle still counts', () => {
+    class Foreign extends Error {
+      name = 'AiError';
+      code = 'RATE_LIMITED';
+    }
+    expect(isAiError(new AiError('TIMEOUT'))).toBe(true);
+    expect(isAiError(new Foreign('x'))).toBe(true);
+    expect(isAiError(new Error('x'))).toBe(false);
+    expect(isAiError(Object.assign(new Error('x'), { name: 'AiError', code: 'NOPE' }))).toBe(false);
+    expect(isAiError(null)).toBe(false);
+    expect(isAiError('AUTH_REQUIRED')).toBe(false);
   });
 });
 

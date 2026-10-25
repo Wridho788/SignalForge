@@ -4,7 +4,7 @@ import { useActionState } from 'react';
 import { FormErrors } from '@/components/ui/FormErrors';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { idleState, type FormState } from '@/lib/form-state';
-import { MAX_COMPARISON_WINDOWS } from '@/lib/validation/settings';
+import { MAX_COMPARISON_WINDOWS } from '@/lib/validation/settings-limits';
 
 export function SettingsForm({
   action,

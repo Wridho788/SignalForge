@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { connection } from 'next/server';
+import { LuBot } from 'react-icons/lu';
 import { TrendChart } from '@/components/charts/TrendChart';
 import { Alert, EmptyState } from '@/components/ui/feedback';
 import { PageHeader, TableScroll } from '@/components/ui/layout-bits';
@@ -43,6 +44,14 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Se
       <PageHeader
         title="Analitik"
         description="Perbandingan pada usia post yang setara. Angka antar platform tidak dijumlahkan, dan nilai yang tidak diketahui tidak dihitung sebagai 0."
+        actions={
+          metric && report.quality.comparable > 0 ? (
+            <Link href={`/analytics/ai${queryToSearch(query)}`} className="btn btn-secondary">
+              <LuBot aria-hidden="true" />
+              Analisis dengan AI
+            </Link>
+          ) : null
+        }
       />
 
       <form method="get" action="/analytics" aria-label="Filter analitik" className="card mb-6">

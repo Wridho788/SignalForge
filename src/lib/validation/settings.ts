@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import { isValidTimeZone } from '../time';
+import { MAX_COMPARISON_WINDOWS } from './settings-limits';
+
+export { MAX_COMPARISON_WINDOWS };
 
 export const comparisonWindowSchema = z
   .object({
@@ -14,8 +17,6 @@ export const DEFAULT_COMPARISON_WINDOWS: ComparisonWindow[] = [
   { hours: 24, toleranceHours: 6 },
   { hours: 168, toleranceHours: 24 },
 ];
-
-export const MAX_COMPARISON_WINDOWS = 4;
 
 export const comparisonWindowsSchema = z
   .array(comparisonWindowSchema)

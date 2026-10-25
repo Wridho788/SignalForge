@@ -44,10 +44,6 @@ Nama `signalforge` (huruf kecil) dipakai untuk package name, nama folder, dan id
 - Jangan mengirim data ke model AI tanpa aksi pengguna yang jelas dan ringkasan data yang akan dikirim.
 - Jangan meminta atau menampilkan access token, refresh token, cookie, atau isi file kredensial.
 
-## Status awal
-
-Repository saat ini hanya berisi dokumentasi (belum ada `package.json`, source code, atau git history). Inspeksi M0 dicatat di `docs/delivery/IMPLEMENTATION_LOG.md`. Implementasi, versi dependency, dan status fitur harus diverifikasi terhadap repository ketika kode ada. Tidak ada fitur yang dianggap selesai hanya karena spesifikasinya sudah ditulis.
-
 ## Menjalankan secara lokal
 
 Prasyarat: Node.js >= 22.13 (memakai `node:sqlite` bawaan, masih experimental — lihat ADR 0005) dan pnpm (ADR 0004).
@@ -65,9 +61,41 @@ pnpm build
 
 Data tersimpan di `./.data/` (database SQLite + `backups/`), dapat diubah lewat `SIGNALFORGE_DATA_DIR`. Salin `.env.example` ke `.env.local` jika perlu override. Jangan menaruh token atau secret di file env. Hapus data lokal dengan menghapus folder tersebut saat server berhenti.
 
-## Status fitur (setelah M3)
+## Fitur
 
-Tersedia: ringkasan, CRUD episode + tag, CRUD distribusi (Facebook/YouTube/TikTok), timeline snapshot metrik manual (append-only, koreksi lewat snapshot pengganti), definisi metrik yang dapat dikonfigurasi, pengaturan zona waktu dan jendela perbandingan, `/api/health`. Belum ada: analitik dan perbandingan usia setara (M4), eksperimen (M5), impor/ekspor CSV dan cadangan manual (M6), AI Connections (M7), tema gelap dan data demo. Lihat `docs/delivery/ROADMAP.md`.
+Tersedia: ringkasan; CRUD episode + tag; CRUD distribusi (Facebook/YouTube/TikTok); snapshot metrik manual (append-only; koreksi lewat snapshot pengganti); definisi metrik yang dapat dikonfigurasi; analitik pada usia post yang setara (per platform, tidak digabung; nilai tidak diketahui tetap kosong, bukan 0); eksperimen dengan ambang sukses terstruktur dan bukti observasional; impor/ekspor CSV, cadangan dan pemulihan database; koneksi AI opsional (Claude dan Codex lewat CLI resmi) dengan persetujuan sebelum data dikirim; `/api/health`.
+
+Belum ada: tema gelap, data demo, pengelolaan tag terpisah. Lihat `docs/delivery/ROADMAP.md` dan batasan yang diketahui di bawah.
+
+## Data Anda
+
+- **Lokasi:** `./.data/` (database `signalforge.sqlite` dan folder `backups/`), atau folder dari `SIGNALFORGE_DATA_DIR`. Tidak ada data yang keluar dari komputer ini kecuali Anda menjalankan analisis AI dan menyetujui ringkasan data yang ditampilkan.
+- **CSV:** menu *Impor & Ekspor*. Unduh templat, isi, unggah, tinjau pratinjau (baris valid/ditolak), lalu simpan. Impor bersifat semua-atau-tidak-sama-sekali per snapshot; duplikat dapat dilewati atau digantikan (snapshot lama tidak pernah diubah). Sel teks yang diawali `= + - @` diberi awalan `'` saat ekspor agar tidak dieksekusi spreadsheet; angka tidak diubah. Format dan batasnya ada di `docs/adr/0007-csv-format-and-backup-restore.md`.
+- **Cadangan:** tombol *Buat cadangan* menyimpan salinan konsisten ke `.data/backups/`. Cadangan otomatis dibuat sebelum migrasi skema dan sebelum pemulihan.
+- **Pulihkan:** unggah file `.sqlite` di halaman Cadangan, tinjau ringkasan, ketik `PULIHKAN`. File divalidasi dulu (integritas, versi skema, tabel yang diharapkan, tanpa trigger/view asing); jika gagal, database sekarang tidak berubah. Pulihkan manual: hentikan server, ganti `signalforge.sqlite` dengan salinan dari `backups/`, jalankan lagi.
+- **Menghapus semua data:** hentikan server lalu hapus folder data.
+
+## Koneksi AI (opsional)
+
+Dasbor berfungsi penuh tanpa AI. Buka *Pengaturan → Koneksi AI* untuk melihat status Claude dan Codex, memasang/masuk lewat alur resmi masing-masing, dan menguji koneksi (satu permintaan nyata, dengan konfirmasi). Analisis dimulai dari tombol *Analisis dengan AI* di halaman Analitik: Anda melihat rentang tanggal, jumlah data, kolom yang dikirim/tidak dikirim, dan payload persisnya sebelum menekan *Lanjutkan*. SignalForge tidak pernah meminta atau menampilkan token; tidak ada kolom token. Detail dan batasan: `docs/ai/AI_CONNECTIONS.md`, ADR 0008.
+
+Variabel lingkungan opsional: `SIGNALFORGE_DATA_DIR`, `SIGNALFORGE_CLAUDE_PATH` / `SIGNALFORGE_CODEX_PATH` (lokasi lengkap CLI jika tidak ada di PATH), `SIGNALFORGE_AI_MODE=fake` (hanya untuk pengujian: penyedia palsu dalam proses, ditandai banner "Mode uji").
+
+## Pemecahan masalah
+
+- *Port 3000 dipakai / E2E gagal start:* hentikan `pnpm dev` lain; E2E memakai port 3100 dan menulis ke `.next`.
+- *`node:sqlite` tidak ditemukan:* butuh Node.js >= 22.13.
+- *CLI AI "tidak ditemukan":* jalankan SignalForge dari terminal baru setelah memasang CLI, atau set `SIGNALFORGE_CLAUDE_PATH`/`SIGNALFORGE_CODEX_PATH`. Panel *Cara menyiapkan* di tiap kartu memuat langkah per OS.
+- *Halaman 403:* server hanya menerima Host loopback (`127.0.0.1`, `localhost`) dan permintaan tulis dari origin yang sama.
+- *Database tidak bisa dibuka setelah upgrade:* pulihkan salinan pra-migrasi di `.data/backups/`.
+
+## Batasan yang diketahui (v0.1.0)
+
+- `node:sqlite` masih berstatus experimental di Node.js; versi Node dibatasi lewat `engines`.
+- Analisis AI hanya diuji dengan CLI palsu dan penyedia palsu; login dan inferensi asli ke Claude/Codex belum dijalankan di repositori ini, dan bentuk keluaran CLI asli dapat berbeda antar versi.
+- Audit pembaca layar dan axe, serta uji di browser selain Chromium, belum dijalankan.
+- Eksperimen tidak dapat dibuka lagi setelah selesai; bukti bersifat observasional (bukan sebab-akibat).
+- Grafik adalah SVG tanpa zoom; tidak ada tema gelap.
 
 ## Struktur
 

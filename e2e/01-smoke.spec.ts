@@ -8,9 +8,10 @@ test('home page shows the SignalForge identity and the empty state', async ({ pa
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('SignalForge — Content Intelligence');
   await expect(page.getByRole('heading', { name: 'Belum ada data' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Buat episode pertama' })).toBeVisible();
-  // Cycle stages are labelled honestly: all four stages are available.
-  await expect(page.getByText('Tersedia', { exact: true })).toHaveCount(4);
-  await expect(page.getByText('Belum tersedia', { exact: true })).toHaveCount(0);
+  // Each stage of the cycle links to where it happens.
+  for (const [stage, href] of [['Measure', '/episodes'], ['Understand', '/analytics'], ['Experiment', '/experiments'], ['Improve', '/experiments']] as const) {
+    await expect(page.getByRole('link', { name: new RegExp(String.raw`^\d{2}\s*` + stage) })).toHaveAttribute('href', href);
+  }
 });
 
 test('episodes list is empty on a fresh database', async ({ page }) => {

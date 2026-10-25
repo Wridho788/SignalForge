@@ -176,7 +176,7 @@ test('overview KPIs: per-platform, with reasons and baseline rules', async ({ pa
   const tt = tiles.filter({ hasText: 'TikTok' });
   await expect(tt).toContainText('12.000');
   await expect(tt).toContainText('Perubahan tidak tersedia — belum ada post sebelumnya');
-  await expect(page.getByText('Tersedia', { exact: true })).toHaveCount(4); // all four cycle stages are live
+  await expect(page.getByRole('link', { name: /^02\s*Understand/ })).toHaveAttribute('href', '/analytics');
 });
 
 test('analytics and performance pages fit 360px and name their controls', async ({ page }) => {

@@ -57,14 +57,17 @@ The MVP is a single-user local app. The main risks are accidental network exposu
 - Document where the app stores data and how to remove it.
 
 ## Pre-release security checklist
-Status after M3 (2026-10-23). Items marked [x] were verified by a test or a command recorded in `IMPLEMENTATION_LOG.md`; the rest are NOT YET DONE and belong to later milestones.
+Status at release 0.1.0 (2026-10-24). Items marked [x] were verified by a test or a command recorded in `IMPLEMENTATION_LOG.md`; items marked [~] are partly verified, with the gap stated; [ ] is NOT DONE.
 - [x] Server binds to loopback (`dev`/`start` use `-H 127.0.0.1`; listener checked with `Get-NetTCPConnection`).
-- [x] Origin/Host/CSRF defenses tested — `src/proxy.ts` + `request-guard` (unit tests and E2E: bad Host → 403, POST without/with foreign/other-port Origin → 403). Server Actions also get Next's own Origin-vs-Host check. No CSRF token is used; the guard relies on Origin/Host plus same-origin POST-only actions.
-- [x] No token fields (E2E scans the main pages for credential-like inputs). Logging: unexpected errors log only operation id, error name and a message truncated to 200 chars; no request bodies. AI/token handling does not exist yet (M7).
-- [ ] Child process uses `shell: false` and bounded lifecycle.
-- [ ] API request and response sizes capped.
-- [ ] Rate/concurrency limits for AI requests.
-- [ ] Import/export validated and CSV formula injection mitigated.
-- [ ] AI output rendered without raw HTML execution.
-- [ ] Backup/restore tested.
-- [ ] No network listeners enabled by default.
+- [x] Origin/Host/CSRF defenses tested — `src/proxy.ts` + `request-guard` (unit tests and E2E: bad Host → 403, POST without/with foreign/other-port Origin → 403, including `/api/ai/*`). Server Actions also get Next's own Origin-vs-Host check. No CSRF token is used; the guard relies on Origin/Host plus same-origin POST-only actions.
+- [x] No token fields (E2E scans the main pages and both AI pages for credential-like inputs). Logging: unexpected errors log only operation id, error name and a message truncated to 200 chars; AI failures log only provider, safe code and operation id — never prompts, answers, or provider text.
+- [x] Child process uses `shell: false` and bounded lifecycle — fixed argument arrays, env allowlist (API keys/tokens dropped), stdout/stderr caps, timeouts, process-tree kill on timeout/cancel/disconnect (unit tests with fake CLIs, incl. Windows temp-dir cleanup and crash mid-turn).
+- [x] API request and response sizes capped — `/api/ai/*` bodies ≤ 4 KB (413 tested), CSV ≤ 2 MB / 5,000 rows / 5,000 chars per cell, restore file ≤ 25 MB, AI payload ≤ 60,000 chars / 60 posts, AI output ≤ 12,000 chars.
+- [x] Rate/concurrency limits for AI requests — one call in flight per provider, 12 per 10 minutes (unit tests).
+- [x] Import/export validated and CSV formula injection mitigated — text cells guarded with a lossless inverse, numbers untouched, errors never echo cell contents (unit + E2E, incl. round-trip).
+- [x] AI output rendered without raw HTML execution — React elements only, no links/images; hostile output (`<script>`, `javascript:` link, image) shown as inert text (unit + E2E, no dialog fired).
+- [x] Backup/restore tested — consistent backup, validated restore (integrity, schema version, tables, trigger/view allowlist), typed confirmation, rollback on failure, pre-restore backup (unit + E2E).
+- [x] No network listeners enabled by default — only the Next.js server on 127.0.0.1; the Codex app-server is used over stdio, never as a listener.
+- [~] AI provider authentication uses official flows only — no token field, no credential-file reads, device-code URL host restricted to https openai.com/chatgpt.com; **NOT RUN against a real Claude/Codex login** (fake CLIs and an in-process fake provider only).
+- [x] Dependency review — `pnpm install --frozen-lockfile` resolved from the lockfile, `pnpm audit --prod` reported "No known vulnerabilities found" on 2026-10-24 (dev dependencies were not audited), and a secret-pattern scan of the repository was clean.
+- [ ] Screen-reader and automated axe accessibility audits, and testing in browsers other than Chromium — NOT RUN.

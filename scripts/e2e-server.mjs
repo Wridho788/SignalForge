@@ -10,6 +10,8 @@ const dataDir = path.join(root, '.data', 'e2e');
 fs.rmSync(dataDir, { recursive: true, force: true });
 
 process.env.SIGNALFORGE_DATA_DIR = dataDir;
+// In-process fake AI providers: no CLI is spawned and nothing leaves the machine (scenario: <data dir>/fake-ai.json).
+process.env.SIGNALFORGE_AI_MODE = 'fake';
 const mode = process.argv.includes('--prod') ? 'start' : 'dev';
 process.argv = [process.argv[0], 'next', mode, '-H', '127.0.0.1', '-p', '3100'];
 await import(pathToFileURL(path.join(root, 'node_modules', 'next', 'dist', 'bin', 'next')).href);

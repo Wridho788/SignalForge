@@ -52,12 +52,25 @@
   }
 }
 
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
 @layer components {
+  .page-enter {
+    animation: page-enter 160ms ease-out both;
+  }
   .card {
     @apply rounded-card border border-line bg-surface p-5;
   }
   .btn {
     @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-control border px-4 py-2 text-sm font-semibold no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
   }
   .btn-primary {
     @apply border-primary bg-primary text-white hover:bg-primary-strong;

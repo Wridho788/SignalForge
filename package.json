@@ -1,6 +1,6 @@
 {
   "name": "signalforge",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "SignalForge — Content Intelligence: local-first content analytics dashboard.",
@@ -20,6 +20,7 @@
     "next": "^16.4.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-icons": "^5.7.0",
     "server-only": "^0.0.1",
     "zod": "^4.6.7"
   },

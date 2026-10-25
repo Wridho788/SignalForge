@@ -79,9 +79,10 @@ export function resolveProviderCommand(id: ProviderId, options: ResolveOptions =
   }
 
   if (platform === 'win32') {
+    // These paths come from the user's PATH at runtime, not from project files: tell the bundler not to trace them.
     for (const dir of dirs) {
-      if (!['.cmd', '.ps1', ''].some((ext) => isFile(path.join(dir, `${name}${ext}`)))) continue;
-      const target = path.join(dir, npmRelative);
+      if (!['.cmd', '.ps1', ''].some((ext) => isFile(path.join(/*turbopackIgnore: true*/ dir, `${name}${ext}`)))) continue;
+      const target = path.join(/*turbopackIgnore: true*/ dir, npmRelative);
       if (isFile(target)) return fromFile(target, 'npm-shim');
     }
   }

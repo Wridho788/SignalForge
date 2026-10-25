@@ -126,6 +126,12 @@ Source of truth: `src/lib/db/migrations/`. Differences and decisions on top of t
 - **Equivalent age** follows ADR 0006: closest known reading within target ± tolerance, ties to the earlier capture, explicit reason otherwise. Superseded snapshots are excluded from every analytic. Provenance (`metric_snapshots.source`) is carried to the result.
 - **Experiments** (`experiments`, `experiment_secondary_metrics`, `experiment_distributions`, `experiment_events`): `success_type` ∈ `min_value` (metric units; ratios as fractions) | `min_relative_gain` (fraction). `design` ∈ `concurrent` | `before_after` | `other`. `comparison_tolerance_hours` is copied from Settings at creation. Roles per link: `baseline` | `variant` | `supporting`. CHECK constraints tie `decision` to status (decision present exactly when completed/inconclusive; `inconclusive` decision ⇔ `inconclusive` status), require learning and end/start times, and forbid negative thresholds. `experiment_events` blocks UPDATE (append-only); deleting a draft/cancelled experiment cascades its links and log, never the linked content.
 
+### 5.2 Import jobs and CSV (M6, schema v5)
+
+- **`import_jobs`**: `status` ∈ `previewed` | `committed` | `failed` | `cancelled`; `duplicate_policy` ∈ `skip` | `supersede` (set at commit); counters `rows_total/valid/rejected` and `snapshots_created`. `content` holds the staged CSV text only while `previewed` and is set to NULL on commit/cancel/expiry. `error_summary` stores row numbers and generic messages, never cell contents.
+- **`metric_snapshots.import_job_id`** is NULL for manual snapshots and references the job for imported ones (`source = 'csv_import'`). Imported snapshots are append-only like any other; a `supersede` import adds a new snapshot with `supersedes_snapshot_id`.
+- Format, guard, limits and restore rules: ADR 0007. Backups live in `<data dir>/backups/` (not in the database).
+
 ## 6. Example analytics output contract
 
 ```ts
