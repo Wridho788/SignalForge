@@ -1,4 +1,4 @@
-# AI Connections: Claude and Codex
+# AI Connections: Claude, Codex, and Gemini
 
 ## 1. UX decision: “Connect account”, not “Get token”
 
@@ -90,7 +90,7 @@ type ProviderStatus =
   | 'error';
 
 interface ProviderHealth {
-  provider: 'claude' | 'codex';
+  provider: 'claude' | 'codex' | 'gemini';
   status: ProviderStatus;
   checkedAt: string;
   displayMessage: string;
@@ -157,9 +157,18 @@ Decision record: ADR 0008. Code: `src/lib/ai/` (adapters, process/JSON-RPC plumb
 - **Consent.** `/analytics/ai` carries the current analytics filters. “Tinjau data yang akan dikirim” shows date range, counts (episodes, distributions, snapshots), fields included and excluded, the provider that will receive the data, and the exact JSON (collapsible). Titles are opt-in. Continue / Cancel; a running analysis can be cancelled, which stops the provider process.
 - **Result.** Provider, model (if reported), generation time, data subset, the six sections with Indonesian labels, an “advisory, not fact” banner, a warning for citations that are not in the sent data, an alias legend resolved locally, and copy/retry/close. Results are not stored.
 - **Limits.** ≤ 60 posts and ≤ 60,000 payload characters; request bodies to the API ≤ 4 KB; output ≤ 12,000 characters; 120 s (Claude) / 150 s (Codex) analysis timeout; 1 in-flight call and 12 calls / 10 minutes per provider.
-- **Test mode.** `SIGNALFORGE_AI_MODE=fake` (used by the Playwright server only) replaces both providers with an in-process fake driven by `<data dir>/fake-ai.json`; a “Mode uji” banner is shown. `SIGNALFORGE_CLAUDE_PATH` / `SIGNALFORGE_CODEX_PATH` can point to an executable that is not on PATH.
+- **Test mode.** `SIGNALFORGE_AI_MODE=fake` (used by the Playwright server only) replaces all providers with an in-process fake driven by `<data dir>/fake-ai.json`; a “Mode uji” banner is shown. `SIGNALFORGE_CLAUDE_PATH` / `SIGNALFORGE_CODEX_PATH` can point to an executable that is not on PATH.
 
-## 10. Recheck status and what is NOT verified
+## 10. Gemini API Free Tier (2026-11-17)
+
+- Gemini uses Google's official Gemini Developer API directly from server-only code. Model is fixed to `gemini-3.5-flash-lite`; the app does not accept a model name or enable tools/grounding. Google's current pricing page lists standard input/output as free for this model. Availability, limits, and billing rules can change; recheck Google's pricing before release. **Not re-confirmed on 2026-11-17:** the pricing page could not be re-read in that session (no network access to it), so "listed as free" still rests on the earlier reading — see the ADR 0009 verification note.
+- `GEMINI_API_KEY` is read from the SignalForge server process environment only. SignalForge does not write or persist it in `.env` files, return it to the browser, or log it. The setup guide requests it with hidden terminal input and removes it from that shell session after the app exits. Use an AI Studio Free Tier project with billing disabled; a key associated with a billed project may have different billing behavior.
+- A local health check only detects whether a key value is present; it cannot prove the key works or identify the project's billing tier. “Uji koneksi” and analysis call Google's API only after explicit user consent. Google Free Tier terms state that content may be used to improve Google products. The consent screen discloses this before analysis.
+- Gemini CLI is not used: Google announced that individual Free-tier Gemini CLI access moved to Antigravity CLI effective 2026-06-18. Current API Free Tier is the supported path used here.
+- **Verified live on 2026-11-17:** a real Google AI Studio Free Tier key was used through the adapter itself (`GeminiProvider`, not a hand-written curl request). `GET /v1beta/models` returned HTTP 200 and listed `models/gemini-3.5-flash-lite`; a real `generateContent` call against that model returned HTTP 200 with `finishReason: STOP`, `serviceTier: standard`, and `modelVersion: gemini-3.5-flash-lite`. The connection test (`testInference`) and a six-section analysis call both succeeded through `GeminiProvider` with the key supplied only as `GEMINI_API_KEY` in the server process environment. The probe was a temporary, uncommitted test file and was deleted afterwards; it is not part of the committed suite.
+- **Still NOT verifiable locally:** the key's Google Cloud project billing state. A successful call does not prove the project is on the Free Tier rather than a billed project, and it does not prove remaining quota. A user must confirm this in Google AI Studio.
+
+## 11. Recheck status and what is NOT verified
 
 - Rechecked on 2026-10-24: Claude install commands (PowerShell `irm https://claude.ai/install.ps1 | iex`; macOS/Linux/WSL `curl -fsSL https://claude.ai/install.sh | bash`) against `https://code.claude.com/docs/en/getting-started`; `claude auth login --claudeai` (default is the subscription; `--console` is API billing) and `claude auth status --json` against the installed CLI's own `--help`; Codex `codex login`, `codex login --device-auth` (beta, must be enabled in ChatGPT security settings) and the standalone installer `curl -fsSL https://chatgpt.com/codex/install.sh | sh` against `https://learn.chatgpt.com/docs/auth` and `/docs/codex/cli`; the npm package name `@openai/codex` against a locally installed copy. **Not confirmed from the docs pages:** Windows install steps for Codex (npm is used because the package exists), and the Homebrew cask for Codex (removed from the guide). Claude's own page documents browser login via `claude`; the explicit `claude auth login` subcommand comes from the CLI help. Re-verify before release; these change.
 - **NOT RUN:** no real Claude or Codex account was logged in and no real inference was executed in this repository's test runs. The adapters are tested against fake CLIs (`src/test/fake-cli/`) that mimic the documented output shapes: `claude -p --output-format json` result object, `claude auth status --json`, and the Codex app-server JSON-RPC methods (`initialize`, `account/read`, `account/login/start`, thread/turn notifications). The real shapes and the real login flows are therefore unverified here.

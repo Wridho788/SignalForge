@@ -56,7 +56,7 @@ Jobs:
 1. Launch the app locally.
 2. See a clear empty state with an action to create the first episode or import CSV.
 3. Set timezone and preferred comparison windows.
-4. Optionally visit AI Connections to set up Claude or Codex; skipping AI must not block usage.
+4. Optionally visit AI Connections to set up Claude, Codex, or Gemini; skipping AI must not block usage.
 
 ### Flow B — Record a post
 1. Create/edit episode metadata.
@@ -115,9 +115,9 @@ Jobs:
 - Restore should require explicit confirmation and create a pre-restore backup.
 
 ### P1 — AI Connections
-- Separate settings page for Claude and Codex.
+- Separate settings page for Claude, Codex, and Gemini.
 - Provider cards with installation/login status, connection health, last checked time, safe error details, and setup instructions.
-- “Connect / Sign in” action invokes official CLI/app-server login flow or opens official setup docs; do not extract or display raw tokens.
+- “Connect / Sign in” action invokes official CLI/app-server login flow or opens official setup docs; Gemini API key setup stays in a hidden terminal prompt and server environment; do not extract or display credentials.
 - “Test connection” runs a minimal bounded health check.
 - “How to set up” expands OS-specific instructions and official links.
 - AI analysis is opt-in per action, shows which data summary will be sent, supports cancel/timeout, and reports provider errors safely.

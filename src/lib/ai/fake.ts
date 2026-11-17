@@ -25,7 +25,11 @@ const scenarioSchema = z.object({
 type Scenario = z.infer<typeof scenarioSchema>;
 type AnswerKind = 'ok' | 'invalid' | 'unknown-ref' | 'html' | 'slow';
 const isAnswerKind = (v: string): v is AnswerKind => ['ok', 'invalid', 'unknown-ref', 'html', 'slow'].includes(v);
-const fileSchema = z.object({ claude: scenarioSchema.partial().optional(), codex: scenarioSchema.partial().optional() });
+const fileSchema = z.object({
+  claude: scenarioSchema.partial().optional(),
+  codex: scenarioSchema.partial().optional(),
+  gemini: scenarioSchema.partial().optional(),
+});
 
 export class FakeProvider implements LocalAiProvider {
   protected signedIn = false;
@@ -52,8 +56,29 @@ export class FakeProvider implements LocalAiProvider {
     const health = this.signedIn && s.health === 'not_authenticated' ? 'connected' : s.health;
     switch (health) {
       case 'not_installed':
+        // Gemini is an HTTP API, not a local CLI: "CLI not found" would be wrong wording for it.
+        if (this.id === 'gemini') {
+          return {
+            ...base,
+            status: 'not_installed',
+            displayMessage: 'Kunci API Gemini belum disiapkan pada environment server.',
+            remediation: 'Siapkan GEMINI_API_KEY pada sesi terminal yang menjalankan SignalForge, lalu periksa status lagi.',
+            errorCode: 'AUTH_REQUIRED',
+          };
+        }
         return { ...base, status: 'not_installed', displayMessage: AI_ERROR_INFO.CLI_NOT_FOUND.message, remediation: AI_ERROR_INFO.CLI_NOT_FOUND.remediation, errorCode: 'CLI_NOT_FOUND' };
       case 'not_authenticated':
+        if (this.id === 'gemini') {
+          return {
+            ...base,
+            installed: true,
+            authenticated: false,
+            status: 'not_authenticated',
+            displayMessage: 'Kunci API Gemini belum disiapkan pada environment server.',
+            remediation: 'Siapkan GEMINI_API_KEY pada sesi terminal yang menjalankan SignalForge, lalu periksa status lagi.',
+            errorCode: 'AUTH_REQUIRED',
+          };
+        }
         return { ...base, installed: true, authenticated: false, status: 'not_authenticated', displayMessage: AI_ERROR_INFO.AUTH_REQUIRED.message, remediation: AI_ERROR_INFO.AUTH_REQUIRED.remediation, errorCode: 'AUTH_REQUIRED' };
       case 'rate_limited':
         return { ...base, installed: true, authenticated: true, status: 'rate_limited', displayMessage: AI_ERROR_INFO.RATE_LIMITED.message, remediation: AI_ERROR_INFO.RATE_LIMITED.remediation, errorCode: 'RATE_LIMITED' };
@@ -61,8 +86,10 @@ export class FakeProvider implements LocalAiProvider {
         return { ...base, installed: true, status: 'error', displayMessage: AI_ERROR_INFO.PROVIDER_ERROR.message, remediation: AI_ERROR_INFO.PROVIDER_ERROR.remediation, errorCode: 'PROVIDER_ERROR' };
       default:
         return {
-          ...base, installed: true, authenticated: true, version: '0.0.0-fake', status: 'connected',
-          displayMessage: 'CLI uji terpasang dan sudah masuk. Jalankan “Uji koneksi” untuk membuktikan permintaan berhasil.',
+          ...base, installed: true, authenticated: true, version: this.id === 'gemini' ? undefined : '0.0.0-fake', status: 'connected',
+          displayMessage: this.id === 'gemini'
+            ? 'Penyedia Gemini uji tersedia. Jalankan “Uji koneksi” untuk membuktikan permintaan berhasil.'
+            : 'CLI uji terpasang dan sudah masuk. Jalankan “Uji koneksi” untuk membuktikan permintaan berhasil.',
         };
     }
   }

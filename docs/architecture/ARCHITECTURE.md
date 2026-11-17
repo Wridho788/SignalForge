@@ -113,7 +113,7 @@ Define an internal interface such as:
 
 ```ts
 interface LocalAiProvider {
-  id: 'claude' | 'codex';
+  id: 'claude' | 'codex' | 'gemini';
   checkHealth(): Promise<ProviderHealth>;
   analyze(input: AnalysisRequest, options?: { signal?: AbortSignal }): Promise<AnalysisResult>;
 }

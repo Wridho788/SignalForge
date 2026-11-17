@@ -154,8 +154,13 @@ export function AnalysisPanel({
             2. Persetujuan pengiriman data
           </h2>
           <Alert tone="warning" title={`Data berikut akan dikirim ke ${phase.preview.consent.provider}`}>
-            Melalui CLI resmi di komputer ini. Penyedia memproses data sesuai ketentuannya sendiri; SignalForge tidak dapat menariknya kembali.
+            {provider === 'gemini' ? 'Permintaan dikirim langsung dari server lokal SignalForge ke Gemini API menggunakan key dari environment OS.' : 'Permintaan dikirim melalui CLI resmi di komputer ini.'} Penyedia memproses data sesuai ketentuannya sendiri; SignalForge tidak dapat menariknya kembali.
           </Alert>
+          {provider === 'gemini' ? (
+            <Alert tone="warning" title="Ketentuan Gemini API Free Tier">
+              Permintaan dikirim langsung ke Google melalui Gemini API. Pada Free Tier, Google dapat menggunakan prompt dan respons untuk meningkatkan produknya. Jangan lanjutkan bila ringkasan memuat informasi sensitif.
+            </Alert>
+          ) : null}
           <dl className="mt-4 grid gap-3 sm:grid-cols-2">
             <div>
               <dt className="text-sm text-muted">Metrik dan usia target</dt>

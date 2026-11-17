@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
-import { LuPlug, LuTerminal } from 'react-icons/lu';
+import { LuBot, LuPlug, LuTerminal } from 'react-icons/lu';
 import { Alert } from '@/components/ui/feedback';
 import type { TestOutcome } from '@/lib/ai/registry';
 import { formatDateTime } from '@/lib/time';
@@ -32,7 +32,7 @@ export function ProviderCard({ initial, timezone }: { initial: ProviderSnapshot;
   const guideId = `guide-${snap.provider}`;
   const mounted = useRef(true);
 
-  const Icon = snap.provider === 'claude' ? LuTerminal : LuPlug;
+  const Icon = snap.provider === 'claude' ? LuTerminal : snap.provider === 'codex' ? LuPlug : LuBot;
   const status = busy === 'check' ? 'checking' : (snap.health?.status ?? 'checking');
   const loginPending = snap.login.state === 'pending';
 
@@ -268,7 +268,7 @@ export function ProviderCard({ initial, timezone }: { initial: ProviderSnapshot;
           <dt className="text-muted">Kode galat</dt>
           <dd>{h?.errorCode ?? '—'}</dd>
           <dt className="text-muted">Mode</dt>
-          <dd>{snap.testMode ? 'uji (penyedia palsu)' : 'CLI resmi'}</dd>
+          <dd>{snap.testMode ? 'uji (penyedia palsu)' : snap.provider === 'gemini' ? 'API resmi Google' : 'CLI resmi'}</dd>
         </dl>
         <p className="field-hint">Tidak ada token, path kredensial, atau keluaran mentah penyedia di sini.</p>
         {h?.errorCode ? <CopyButton text={`${snap.provider} ${h.errorCode}`} label="Salin kode galat" /> : null}
