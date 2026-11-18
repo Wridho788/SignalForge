@@ -20,8 +20,8 @@ export default async function AiConnectionsPage() {
         description="Hubungkan asisten AI opsional untuk menganalisis data dasbor yang Anda pilih. Dasbor tetap berfungsi penuh tanpa AI."
       />
       <div className="mb-4 space-y-3">
-        <Alert tone="info" title="Cara kerja login">
-          Login ditangani oleh alur resmi lokal milik penyedia. SignalForge tidak pernah menampilkan, meminta, atau menyimpan token Anda, dan tidak ada kolom untuk menempelkan token.
+        <Alert tone="info" title="Cara kerja koneksi">
+          Claude dan Codex memakai alur resmi lokal masing-masing. Gemini memakai Gemini API dengan key sementara dari environment OS. SignalForge tidak pernah menampilkan, meminta, atau menyimpan token/key, dan tidak ada kolom kredensial.
         </Alert>
         {testMode ? (
           <Alert tone="warning" title="Mode uji">

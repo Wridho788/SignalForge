@@ -10,7 +10,7 @@ test.setTimeout(120_000);
 
 const SCENARIO_FILE = path.join(process.cwd(), '.data', 'e2e', 'fake-ai.json');
 type Scenario = Record<string, unknown>;
-function scenario(value: { claude?: Scenario; codex?: Scenario } | null) {
+function scenario(value: { claude?: Scenario; codex?: Scenario; gemini?: Scenario } | null) {
   fs.mkdirSync(path.dirname(SCENARIO_FILE), { recursive: true });
   if (value === null) fs.rmSync(SCENARIO_FILE, { force: true });
   else fs.writeFileSync(SCENARIO_FILE, JSON.stringify(value));
@@ -20,9 +20,9 @@ const TAG = 'ai-e2e';
 const AI_URL = `/analytics/ai?tag=${TAG}`;
 const ORIGIN = { origin: 'http://127.0.0.1:3100' };
 
-const card = (page: Page, provider: 'claude' | 'codex') => page.locator(`section[data-provider="${provider}"]`);
+const card = (page: Page, provider: 'claude' | 'codex' | 'gemini') => page.locator(`section[data-provider="${provider}"]`);
 
-async function review(page: Page, opts: { provider?: 'Claude' | 'Codex'; titles?: boolean } = {}) {
+async function review(page: Page, opts: { provider?: 'Claude' | 'Codex' | 'Gemini'; titles?: boolean } = {}) {
   await page.goto(AI_URL);
   await page.getByRole('radio', { name: new RegExp(opts.provider ?? 'Claude') }).check();
   if (opts.titles) await page.getByLabel('Sertakan judul episode').check();
@@ -41,7 +41,7 @@ test('disconnected by default: honest status, no token field, and the dashboard 
   await page.goto('/settings/ai-connections');
   await expect(page.getByRole('heading', { level: 1, name: 'Koneksi AI' })).toBeVisible();
   await expect(page.getByText('Mode uji').first()).toBeVisible();
-  for (const p of ['claude', 'codex'] as const) {
+  for (const p of ['claude', 'codex', 'gemini'] as const) {
     await expect(card(page, p)).toContainText('Belum terpasang');
     await expect(card(page, p).getByRole('button', { name: 'Uji koneksi' })).toBeDisabled();
   }
@@ -72,6 +72,13 @@ test('setup guide: OS selector, copyable official commands, official links, bill
   await expect(claude).toContainText('Langganan atau API?');
   await claude.getByText('Pemecahan masalah').click();
   await expect(claude).toContainText('CLI tidak ditemukan setelah dipasang');
+
+  const gemini = card(page, 'gemini');
+  await gemini.getByRole('button', { name: 'Cara menyiapkan' }).click();
+  await expect(gemini).toContainText('Buat API key Free Tier di Google AI Studio');
+  await expect(gemini).toContainText('GEMINI_API_KEY');
+  await expect(gemini.getByRole('link', { name: 'Gemini API: model, harga, dan Free Tier' })).toHaveAttribute('href', 'https://ai.google.dev/gemini-api/docs/pricing');
+  await expect(gemini).toContainText('Google menyatakan konten Free Tier dapat dipakai');
 });
 
 test('status, consented connection test, and failure codes', async ({ page }) => {
@@ -170,6 +177,22 @@ test('analysis: consent first (counts, fields, exact payload), then a labelled a
   await expect(result.getByText('Legenda rujukan')).toBeVisible();
   await expect(result.getByRole('button', { name: 'Salin hasil analisis' })).toBeVisible();
   await expect(result).not.toContainText('Rujukan tidak dikenal');
+});
+
+test('Gemini analysis discloses Free Tier data use before the user sends the payload', async ({ page }) => {
+  scenario({ gemini: { health: 'connected' } });
+  await review(page, { provider: 'Gemini' });
+  const consent = page.getByTestId('consent');
+  await expect(consent).toContainText('Data berikut akan dikirim ke Gemini');
+  await expect(consent).toContainText('Ketentuan Gemini API Free Tier');
+  await expect(consent).toContainText('Google dapat menggunakan prompt dan respons untuk meningkatkan produknya');
+  await expect(consent.getByRole('button', { name: 'Lanjutkan dan kirim' })).toBeVisible();
+  await consent.getByRole('button', { name: 'Lanjutkan dan kirim' }).click();
+  const result = page.getByTestId('ai-result');
+  await expect(result).toBeVisible();
+  await expect(result).toContainText('Penyedia: Gemini');
+  await expect(result).toContainText('Model: fake-model-1');
+  await expect(result.getByRole('heading', { level: 3, name: 'Temuan' })).toBeVisible();
 });
 
 test('analysis: titles are sent only when the user opts in', async ({ page }) => {

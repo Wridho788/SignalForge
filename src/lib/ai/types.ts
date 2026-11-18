@@ -1,12 +1,13 @@
-export const PROVIDER_IDS = ['claude', 'codex'] as const;
+export const PROVIDER_IDS = ['claude', 'codex', 'gemini'] as const;
 export type ProviderId = (typeof PROVIDER_IDS)[number];
 
-export const PROVIDER_NAMES: Record<ProviderId, string> = { claude: 'Claude', codex: 'Codex' };
+export const PROVIDER_NAMES: Record<ProviderId, string> = { claude: 'Claude', codex: 'Codex', gemini: 'Gemini' };
 
 /** Integration method shown on the provider card (AI_CONNECTIONS.md §3). */
 export const PROVIDER_METHODS: Record<ProviderId, string> = {
   claude: 'Claude Code CLI (mode non-interaktif, tanpa tool)',
   codex: 'Codex app-server (JSON-RPC via stdio)',
+  gemini: 'Gemini Developer API (Free Tier)',
 };
 
 export type ProviderStatus =

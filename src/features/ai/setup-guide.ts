@@ -104,4 +104,36 @@ export const GUIDES: Record<ProviderId, Guide> = {
       { problem: 'Jaringan tidak tersedia', fix: 'Periksa koneksi internet atau proxy. Data lokal tidak terpengaruh.' },
     ],
   },
+  gemini: {
+    steps: {
+      windows: [
+        { title: 'Buat API key Free Tier di Google AI Studio', detail: 'Pilih project tanpa billing berbayar dan jangan aktifkan billing. API key tidak dimasukkan ke SignalForge atau file proyek.' },
+        { title: 'Jalankan SignalForge dari PowerShell dengan key sementara', detail: 'Salin seluruh baris ini ke PowerShell. Key diminta tanpa ditampilkan, hanya diwariskan ke proses SignalForge, lalu dihapus dari sesi.' , command: "$secure = Read-Host 'Gemini API key' -AsSecureString; $env:GEMINI_API_KEY = [Net.NetworkCredential]::new('', $secure).Password; pnpm dev; Remove-Item Env:GEMINI_API_KEY" },
+        { title: 'Periksa status', detail: 'Kembali ke halaman ini lalu tekan “Periksa status”. Status lokal hanya memastikan key tersedia; “Uji koneksi” memverifikasi key dan kuota dengan satu permintaan nyata.' },
+      ],
+      macos: [
+        { title: 'Buat API key Free Tier di Google AI Studio', detail: 'Pilih project tanpa billing berbayar dan jangan aktifkan billing. API key tidak dimasukkan ke SignalForge atau file proyek.' },
+        { title: 'Jalankan SignalForge dengan key sementara', detail: 'Jalankan di Terminal; key dibaca tanpa ditampilkan dan hanya diwariskan ke proses SignalForge.' , command: "read -s 'GEMINI_API_KEY?Gemini API key: '; export GEMINI_API_KEY; pnpm dev; unset GEMINI_API_KEY" },
+        { title: 'Periksa status', detail: 'Kembali ke halaman ini lalu tekan “Periksa status”. Status lokal hanya memastikan key tersedia; “Uji koneksi” memverifikasi key dan kuota dengan satu permintaan nyata.' },
+      ],
+      linux: [
+        { title: 'Buat API key Free Tier di Google AI Studio', detail: 'Pilih project tanpa billing berbayar dan jangan aktifkan billing. API key tidak dimasukkan ke SignalForge atau file proyek.' },
+        { title: 'Jalankan SignalForge dengan key sementara', detail: 'Jalankan di Bash; key dibaca tanpa ditampilkan dan hanya diwariskan ke proses SignalForge.' , command: "read -s -p 'Gemini API key: ' GEMINI_API_KEY; export GEMINI_API_KEY; pnpm dev; unset GEMINI_API_KEY" },
+        { title: 'Periksa status', detail: 'Kembali ke halaman ini lalu tekan “Periksa status”. Status lokal hanya memastikan key tersedia; “Uji koneksi” memverifikasi key dan kuota dengan satu permintaan nyata.' },
+      ],
+    },
+    docs: [
+      { label: 'Google AI Studio: API keys', href: 'https://aistudio.google.com/apikey' },
+      { label: 'Gemini API: model, harga, dan Free Tier', href: 'https://ai.google.dev/gemini-api/docs/pricing' },
+      { label: 'Gemini API: rate limits', href: 'https://ai.google.dev/gemini-api/docs/rate-limits' },
+    ],
+    billing:
+      'SignalForge memakai model gemini-3.5-flash-lite yang saat ini terdaftar dengan input/output gratis pada Standard Free Tier; model dikunci agar tidak beralih ke model berbayar. Kuota dan ketersediaan dapat berubah. Pastikan key berasal dari project Free Tier tanpa billing aktif. Google menyatakan konten Free Tier dapat dipakai untuk meningkatkan produk; analisis tetap memerlukan persetujuan setiap kali.',
+    troubleshooting: [
+      { problem: 'Gemini API key tidak ditemukan', fix: 'Jalankan SignalForge dari sesi terminal yang sama tempat GEMINI_API_KEY disiapkan. Jangan simpan key di file .env atau repository.' },
+      { problem: 'API key ditolak', fix: 'Buat key baru di Google AI Studio, pastikan Gemini API aktif pada project, lalu mulai ulang SignalForge.' },
+      { problem: 'Kuota Free Tier habis', fix: 'Tunggu sampai kuota pulih. SignalForge tidak mencoba ulang otomatis dan tidak mengganti model ke model berbayar.' },
+      { problem: 'Jaringan tidak tersedia', fix: 'Periksa koneksi internet atau proxy. Data lokal tidak terpengaruh.' },
+    ],
+  },
 };

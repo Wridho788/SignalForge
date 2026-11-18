@@ -17,7 +17,7 @@ interface Layout {
   npmRelative: string;
 }
 
-const LAYOUT: Record<ProviderId, Layout> = {
+const LAYOUT: Record<Exclude<ProviderId, 'gemini'>, Layout> = {
   claude: { name: 'claude', npmRelative: path.join('node_modules', '@anthropic-ai', 'claude-code', 'bin', 'claude.exe') },
   codex: { name: 'codex', npmRelative: path.join('node_modules', '@openai', 'codex', 'bin', 'codex.js') },
 };
@@ -50,6 +50,7 @@ export interface ResolveOptions {
  * Shim files are never parsed or executed.
  */
 export function resolveProviderCommand(id: ProviderId, options: ResolveOptions = {}): ResolvedCommand | null {
+  if (id === 'gemini') return null;
   const env = options.env ?? process.env;
   const platform = options.platform ?? process.platform;
   const { name, npmRelative } = LAYOUT[id];

@@ -2,6 +2,7 @@ import 'server-only';
 import { resolveDataDir } from '../config';
 import { ClaudeProvider } from './claude';
 import { CodexProvider } from './codex';
+import { GeminiProvider } from './gemini';
 import { AiError, isAiError, newOperationId, type AiErrorCode } from './errors';
 import { FakeCodexProvider, FakeProvider } from './fake';
 import type { LocalAiProvider, ProviderHealth, ProviderId } from './types';
@@ -33,7 +34,9 @@ export function getProvider(id: ProviderId): LocalAiProvider {
       : new FakeProvider(id, resolveDataDir)
     : id === 'claude'
       ? new ClaudeProvider()
-      : new CodexProvider();
+      : id === 'codex'
+        ? new CodexProvider()
+        : new GeminiProvider();
   registry.providers[id] = created;
   return created;
 }

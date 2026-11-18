@@ -11,7 +11,7 @@ Statuses at document creation: all milestones **PLANNED**. Update only after che
 | M4 | DONE (2026-10-24) — with the limitations listed in the log |
 | M5 | DONE (2026-10-24) — with the limitations listed in the log |
 | M6 | DONE (2026-10-24) — with the limitations listed in the log |
-| M7 | DONE (2026-10-24) — **with a NOT RUN item**: no real Claude/Codex login or inference was executed; adapters verified against fake CLIs and a fake provider only |
+| M7 | DONE (2026-10-24), extended 2026-11-17 — Gemini Developer API Free Tier added; real Gemini inference verified live on 2026-11-17; real Claude/Codex login and inference remain NOT RUN |
 | M8 | DONE (2026-10-24) — gates passed except the explicitly listed NOT RUN items (screen reader, axe, non-Chromium browsers); see the log |
 
 "DONE" means the deliverables exist and the acceptance criteria were checked by the tests/commands recorded in `IMPLEMENTATION_LOG.md`; it does not mean free of known limitations.
@@ -96,10 +96,10 @@ Statuses at document creation: all milestones **PLANNED**. Update only after che
 - Backup/restore and round-trip tests pass.
 
 ## M7 — AI Connections and analysis
-**Status:** DONE with a NOT RUN item (ADR 0008, `docs/ai/AI_CONNECTIONS.md` §9–10). Verified: both providers absent/offline, consent and minimized payload, cancel, timeout, rate-limit, auth, malformed output, process exit mid-turn, no token field, inert rendering of hostile output. NOT RUN: a real signed-in Claude or Codex session. Documentation links and commands were rechecked on 2026-10-24.
+**Status:** DONE with NOT RUN items (ADR 0008/0009, `docs/ai/AI_CONNECTIONS.md` §9–11). Verified: provider-absent/offline behavior, consent and minimized payload, cancel, timeout, rate-limit, auth, malformed output, process exit mid-turn, no credential field, inert rendering of hostile output, Gemini adapter via mocked HTTP, Gemini Free Tier disclosure. Gemini live API inference was verified on 2026-11-17 with a real Free Tier key. NOT RUN: real Claude/Codex sign-in/inference.
 
 **Deliverables**
-- AI Connections page for Claude and Codex.
+- AI Connections page for Claude, Codex, and Gemini.
 - Provider status, official login/setup flow, test connection, safe errors.
 - Opt-in data preview and bounded analysis response.
 - Findings/evidence/limitations/hypotheses/experiment format.
